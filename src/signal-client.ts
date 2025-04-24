@@ -1,4 +1,6 @@
 import * as net from 'net';
+import * as os from 'os';
+import * as path from 'path';
 // import split2 from 'split2';
 // import {chain} from 'stream-chain';
 // import {parser} from 'stream-json';
@@ -73,17 +75,25 @@ const jsonRpcResponseSchema = z.object({
 });
 export type JSONRPCResponse = z.infer<typeof jsonRpcResponseSchema>;
 
+type ServerIpcAddrType = string;
+type ServerTcpAddrType = {
+  host: string;
+  port: number;
+};
+type ServerAddrType = ServerIpcAddrType | ServerTcpAddrType;
 export class SignalClient {
-  private url = "127.0.0.1:7583"
+  private addr: ServerAddrType;
   private socket: net.Socket | null = null;
   private pendingRequests: Map<number, Defered<JSONRPCResponse>> = new Map();
   private requestId = 0;
   private autoreconnect = true;
   private buf = "";
 
-  constructor(url?: string) {
-    if(url) {
-      this.url = url;
+  constructor(addr?: ServerAddrType) {
+    if(!addr) {
+      this.addr = path.join(os.tmpdir(), 'signal-cli', 'socket');
+    } else {
+      this.addr = addr;
     }
   }
 
@@ -100,33 +110,63 @@ export class SignalClient {
   }
 
   public async connect() {
-    return new Promise((resolve, reject) => {
-      this.socket = new net.Socket();
-      this.socket.connect(7583, '127.0.0.1', () => {
-        logger.info('Connected to server');
+    if(!this.addr) {
+      throw new Error('No address provided');
+    }
+    if(typeof this.addr === 'string') {
+      return this.connectIpc(this.addr);
+    }
+    return this.connectTcp(this.addr.port, this.addr.host);
+  }
+
+  public async connectTcp(port: number, host: string) {
+    return new Promise<boolean>((resolve, reject) => {
+      if(this.socket) {
+        reject(new Error('socket initialized twice'));
+        return;
+      }
+      this.socket = net.createConnection(port, host, () => {
+        logger.info('Connected to server via tcp' + host + ':' + port);
         resolve(true);
       });
+      this.connectSocket(this.socket, reject);
+    });
+  }
 
-      this.socket.on('error', (err) => {
-        logger.error('Connection error:', err);
-        reject(err);
+  private async connectIpc(ipc: string) {
+    return new Promise<boolean>((resolve, reject) => {
+      if(this.socket) {
+        reject(new Error('socket initialized twice'));
+        return;
+      }
+      this.socket = net.createConnection(ipc, () => {
+        logger.info('Connected to server via ipc' + ipc);
+        resolve(true);
       });
+      this.connectSocket(this.socket, reject);
+    });
+  }
 
-      // const pipeline = chain([
-      //   this.socket,
-      //   split2(),
-      //   parser(),
-      //   new StreamValues(),
-      // ]);
-      // pipeline.on('data', d => {
-      //   this.onData(d);
-      // });
-      this.socket.on('data', d => {
-        this.onRawData(d);
-      })
-      this.socket.on('close', e => {
-        this.onClose(e);
-      });
+  private async connectSocket(sock: net.Socket, reject: rejectFn) {
+    sock.on('error', (err) => {
+      logger.error('Connection error:', err);
+      reject(err);
+    });
+
+    // const pipeline = chain([
+    //   this.socket,
+    //   split2(),
+    //   parser(),
+    //   new StreamValues(),
+    // ]);
+    // pipeline.on('data', d => {
+    //   this.onData(d);
+    // });
+    sock.on('data', d => {
+      this.onRawData(d);
+    })
+    sock.on('close', e => {
+      this.onClose(e);
     });
   }
 
