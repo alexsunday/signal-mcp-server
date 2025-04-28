@@ -1,10 +1,6 @@
 import * as net from 'net';
 import * as os from 'os';
 import * as path from 'path';
-// import split2 from 'split2';
-// import {chain} from 'stream-chain';
-// import {parser} from 'stream-json';
-// import StreamValues from 'stream-json/streamers/StreamValues';
 import { z } from 'zod';
 import winston from 'winston';
 const logger = winston.createLogger({
@@ -153,24 +149,16 @@ export class SignalClient {
       reject(err);
     });
 
-    // const pipeline = chain([
-    //   this.socket,
-    //   split2(),
-    //   parser(),
-    //   new StreamValues(),
-    // ]);
-    // pipeline.on('data', d => {
-    //   this.onData(d);
-    // });
     sock.on('data', d => {
       this.onRawData(d);
     })
     sock.on('close', e => {
-      this.onClose(e);
+      logger.info('Connection closed:', e);
+      this.onClose();
     });
   }
 
-  private onClose(e: boolean) {
+  private onClose() {
     this.socket = null;
     this.pendingRequests.forEach((defered) => {
       defered.reject(new Error('Connection closed'));

@@ -1,5 +1,5 @@
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
-import { CallToolResult } from '@modelcontextprotocol/sdk/types';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import {z} from 'zod';
 import { SignalClient } from './signal-client';

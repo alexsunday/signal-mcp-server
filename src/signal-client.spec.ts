@@ -1,4 +1,4 @@
-import {test, describe} from '@jest/globals';
+import { expect, test, describe, beforeAll, afterAll } from 'vitest';
 import {SignalClient} from './signal-client';
 
 test('add', () => {
@@ -25,6 +25,7 @@ describe('SignalClient', () => {
   test('listIdentities', async () => {
     const identities = await client.listIdentities();
     expect(identities).toBeDefined();
+    console.log(JSON.stringify(identities, null, 2));
   });
 
   test('sendMessage', async () => {
