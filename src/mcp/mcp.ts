@@ -3,7 +3,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { z } from 'zod';
 import { JSONRPCResponse, SignalClient } from './signal-client';
-import { contactSchema, contactType } from './types';
+import { contactSchema, contactType, updateContactArgumentsSchema, updateContactArgumentsType } from './types';
 
 export function initMcpServer(sg: SignalClient) {
   const mcpServer = new SignalCliMcpServer(sg);
@@ -25,6 +25,17 @@ export function initMcpServer(sg: SignalClient) {
     contact: contactSchema,
   }, ({ contact }) => {
     return mcpServer.getUserStatus(contact);
+  });
+
+  server.tool('listContacts', '列出所有联系人 返回联系人唯一识别码UUID 与其他基本信息', {}, () => {
+    return mcpServer.listContacts();
+  });
+
+  server.tool('updateContact', '更新联系人信息', {
+    number: z.string().describe("联系人号码 必须只能是合法的 E164格式的电话号码 不能使用用户名"),
+    opt: updateContactArgumentsSchema,
+  }, ({ number, opt }) => {
+    return mcpServer.updateContact(number, opt);
   });
 
   return server;
@@ -68,6 +79,66 @@ export class SignalCliMcpServer {
     const succeed: CallToolResult = {
       success: true,
       content: [
+      ]
+    }
+    return succeed;
+  }
+
+  async listContacts(): Promise<CallToolResult> {
+    const result = await this.sg.listContacts();
+    if (result.error) {
+      return this.handleError(result);
+    }
+
+    const schema = z.array(z.object({
+      number: z.string(),
+      username: z.union([z.string(), z.null()]),
+      name: z.string(),
+      givenName: z.union([z.string(), z.null()]),
+      familyName: z.union([z.string(), z.null()]),
+      nickName: z.union([z.string(), z.null()]),
+      nickGivenName: z.union([z.string(), z.null()]),
+      nickFamilyName: z.union([z.string(), z.null()]),
+      note: z.union([z.string(), z.null()]),
+      uuid: z.string(),
+    }));
+
+    const parsed = this.restrictResponse(result, schema);
+    return {
+      success: true,
+      content: parsed.map((item) => {
+        return {
+          type: 'text',
+          text: `
+          UUID: ${item.uuid}
+          name: ${item.name}
+          number: ${item.number}
+          username: ${item.username || ''}
+          givenName: ${item.givenName || ''}
+          familyName: ${item.familyName || ''}
+          nickName: ${item.nickName || ''}
+          nickGivenName: ${item.nickGivenName || ''}
+          nickFamilyName: ${item.nickFamilyName || ''}
+          note: ${item.note || ''}
+          `,
+        }
+      })
+    };
+  }
+
+  async updateContact(number: string, opt: updateContactArgumentsType) {
+    const result = await this.sg.updateContact(number, opt);
+    if (result.error) {
+      return this.handleError(result);
+    }
+
+    const succeed: CallToolResult = {
+      success: true,
+      content: [
+        {
+          type: 'text',
+          text: "OK",
+        }
       ]
     }
     return succeed;
@@ -160,7 +231,6 @@ export class SignalCliMcpServer {
     if(result.error) {
       throw new Error(`Error: ${result.error.message}`);
     }
-    console.log(JSON.stringify(result, null, 2));
     const parsed = schema.safeParse(result.result);
     if(!parsed.success) {
       throw new Error(`Invalid response: ${JSON.stringify(parsed.error.format(), null, 2)}`);

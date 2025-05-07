@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { z } from 'zod';
 import winston from 'winston';
-import { contactType } from './types';
+import { contactType, updateContactArgumentsType } from './types';
 
 const logger = winston.createLogger({
   level: 'info', 
@@ -303,6 +303,35 @@ export class SignalClient {
       jsonrpc: '2.0',
       method: 'getUserStatus',
       params: params,
+    });
+  }
+
+  public updateContact(number: string, opt: updateContactArgumentsType) {
+    return this.request({
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'updateContact',
+      params: {
+        recipient: number,
+        name: opt.name,
+        note: opt.note,
+        'given-name': opt.givenName,
+        'family-name': opt.familyName,
+        'nick-given-name': opt.nickGivenName,
+        'nick-family-name': opt.nickFamilyName,
+      }
+    })
+  }
+
+  public removeContact(number: string) {
+    return this.request({
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'removeContact',
+      params: {
+        recipient: number,
+        forget: true,
+      }
     });
   }
 

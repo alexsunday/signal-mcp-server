@@ -29,7 +29,7 @@ describe('SignalClient', () => {
   });
 
   test('sendMessage', async () => {
-    const response = await client.send('s131.01', 'Hello, world!');
+    const response = await client.send({username: 's131.01'}, 'Hello, world!');
     console.log(JSON.stringify(response, null, 2));
     expect(response.result).toBeDefined();
   }, 30 * 1000);
@@ -47,5 +47,10 @@ describe('SignalClient', () => {
     const r2 = await client.getUserStatus({username: 's131.01'});
     console.log(JSON.stringify(r2, null, 2));
     expect(r2.result).toBeDefined();
+  });
+
+  test('updateContact', async () => {
+    const response = await client.updateContact('+8613111111111', {name: '13111'});
+    console.log(JSON.stringify(response, null, 2));
   });
 });
