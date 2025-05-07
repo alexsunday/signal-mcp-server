@@ -1,5 +1,5 @@
 import { expect, test, describe, beforeAll, afterAll } from 'vitest';
-import {SignalClient} from './signal-client';
+import { SignalClient } from './signal-client';
 
 test('add', () => {
   expect(1 + 1).toBe(2);
@@ -33,4 +33,19 @@ describe('SignalClient', () => {
     console.log(JSON.stringify(response, null, 2));
     expect(response.result).toBeDefined();
   }, 30 * 1000);
+
+  test('version', async () => {
+    const response = await client.version();
+    console.log(JSON.stringify(response, null, 2));
+    expect(response.result).toBeDefined();
+  });
+
+  test('getUserStatus', async () => { 
+    const r1 = await client.getUserStatus({number: '+8613111111111'});
+    console.log(JSON.stringify(r1, null, 2));
+    expect(r1.result).toBeDefined();
+    const r2 = await client.getUserStatus({username: 's131.01'});
+    console.log(JSON.stringify(r2, null, 2));
+    expect(r2.result).toBeDefined();
+  });
 });

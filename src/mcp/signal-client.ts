@@ -3,6 +3,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { z } from 'zod';
 import winston from 'winston';
+import { contactType } from './types';
+
 const logger = winston.createLogger({
   level: 'info', 
   format: winston.format.combine(
@@ -276,6 +278,34 @@ export class SignalClient {
     });
   }
 
+  private checkContact(contact: contactType) {
+    if(!contact.username && !contact.number) {
+      throw new Error('Either recipient or number must be provided');
+    }
+    if(contact.username && contact.number) {
+      throw new Error('Either recipient or number must be provided, not both');
+    }
+  }
+
+  private assignContact(contact: contactType) {
+    return {
+      recipient: contact.number ? [contact.number] : undefined,
+      username: contact.username ? [contact.username] : undefined,
+    }
+  }
+
+  public getUserStatus(contact: contactType) {
+    this.checkContact(contact);
+    const params = this.assignContact(contact);
+
+    return this.request({
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'getUserStatus',
+      params: params,
+    });
+  }
+
   public listIdentities() {
     return this.request({
       id: 0,
@@ -284,17 +314,32 @@ export class SignalClient {
     });
   }
 
-  // {"jsonrpc":"2.0","method":"send","params":{"recipient":["+YYY"],"message":"MESSAGE"},"id":4}
-  public send(dstUser: string, message: string) {
+  public send(contact: contactType, message: string) {
+    this.checkContact(contact);
+    const contactParams = this.assignContact(contact);
     return this.request({
       id: 0,
       jsonrpc: '2.0',
       method: 'send',
       params: {
-        // recipient: [dstUser],
-        username: dstUser,
+        ...contactParams,
         message: message,
       },
+    });
+  }
+
+  public UpdateContact(contact: contactType) {
+  }
+
+  public UpdateAccount() {
+    //
+  }
+
+  public version() {
+    return this.request({
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'version',
     });
   }
 }

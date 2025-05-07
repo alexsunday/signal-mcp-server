@@ -7,9 +7,9 @@
   "license": "ISC",
   "description": "",
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --sourcemap=inline --target=node18 --outfile=dist/mcp.js",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts"
+    "build": "esbuild src/main.ts --bundle --platform=node --sourcemap=inline --target=node18 --outfile=dist/signal-mcp-server.js",
+    "start": "node dist/signal-mcp-server.js",
+    "dev": "ts-node src/main.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
