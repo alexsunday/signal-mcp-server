@@ -17,8 +17,14 @@ describe('SignalClient', () => {
     await server.close();
   });
 
-  test('getUserStatus', async () => {
+  test('getUserStatusByPhone', async () => {
     const rs = await server.getUserStatus(({number: '+8613322222222'}));
+    console.log(JSON.stringify(rs, null, 2));
+    expect(rs).toBeDefined();
+  });
+
+  test('getUserStatusByUsername', async () => {
+    const rs = await server.getUserStatus(({username: 's131.01'}));
     console.log(JSON.stringify(rs, null, 2));
     expect(rs).toBeDefined();
   });
@@ -30,7 +36,7 @@ describe('SignalClient', () => {
   });
 
   test('updateContact', async () => {
-    const rs = await server.updateContact('+8613322222222', {name: 'test'});
+    const rs = await server.updateContact('+8613111111111', {name: '', givenName: '', familyName: '', note: '', nickGivenName: '', nickFamilyName: ''});
     console.log(JSON.stringify(rs, null, 2));
     expect(rs).toBeDefined();
   });

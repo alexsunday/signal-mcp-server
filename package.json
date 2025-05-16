@@ -1,17 +1,29 @@
 {
   "name": "signal-mcp-server",
-  "private": "true",
-  "version": "1.0.0",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "version": "1.0.1",
+  "keywords": ["signal-cli", "mcp", "signal-mcp-server"],
+  "main": "dist/signal-mcp-server.js",
+  "bin": {
+    "signal-mcp-server": "dist/signal-mcp-server.js"
+  },
+  "author": "https://github.com/alexsunday/",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexsunday/signal-mcp-server.git"
+    },
+  "description": "connect signal to mcp",
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --sourcemap=inline --target=node18 --outfile=dist/signal-mcp-server.js",
+    "build": "esbuild src/main.ts --bundle --banner:js='#!/usr/bin/env node' --platform=node --sourcemap=inline --target=node18 --outfile=dist/signal-mcp-server.js",
+    "release": "node build.js && npm publish --registry https://registry.npmjs.org/",
     "start": "node dist/signal-mcp-server.js",
     "dev": "ts-node src/main.ts"
   },
-  "dependencies": {
+  "files": [
+    "dist/signal-mcp-server.js"
+  ],
+  "dependencies": {},
+  "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
     "@types/node": "^22.14.1",
     "esbuild": "^0.25.3",
@@ -20,9 +32,7 @@
     "typescript": "^5.8.3",
     "vite": "^6.3.1",
     "winston": "^3.17.0",
-    "zod": "^3.24.3"
-  },
-  "devDependencies": {
+    "zod": "^3.24.3",
     "vitest": "^3.1.2"
   }
 }

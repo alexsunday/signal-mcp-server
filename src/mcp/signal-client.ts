@@ -2,21 +2,8 @@ import * as net from 'net';
 import * as os from 'os';
 import * as path from 'path';
 import { z } from 'zod';
-import winston from 'winston';
 import { contactType, updateContactArgumentsType } from './types';
-
-const logger = winston.createLogger({
-  level: 'info', 
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.simple()
-  ),
-  transports: [
-    new winston.transports.File({
-      filename: 'run.log'
-    }),
-  ]
-});
+import { logger } from './logger';
 
 type resolveFn<T> = (value: T | PromiseLike<T>) => void;
 type rejectFn = (reason?: unknown) => void;
@@ -357,10 +344,7 @@ export class SignalClient {
     });
   }
 
-  public UpdateContact(contact: contactType) {
-  }
-
-  public UpdateAccount() {
+  public updateAccount() {
     //
   }
 
